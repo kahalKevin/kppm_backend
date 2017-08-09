@@ -546,35 +546,52 @@ func SearchPeserta(keyword string) Peserta{
 
 
 func ExportCsv() error{	
-	err := os.Remove("/var/lib/mysql/kppm_dev/data_peserta_kppm.csv")
+	err := os.Remove("/var/lib/mysql/kppm_staging/data_peserta_kppm.csv")
 	if err != nil {
 		log.Println("data peserta not exist")
 	}
 	query_export := `SELECT 'KodePeserta', 'Nama', 'Jenis', 'Jabatan', 'OrganisasiGereja',
 					   'KTP', 'Handphone', 'Umur', 'DenganIstri', 'NamaIstri',
-				       'Provinsi', 'Kota', 'Alamat', 'Bandara-HotelDiurusPanitia',
+				       'Provinsi', 'Kota', 'Alamat', 
 					   'TransportasiBandara-Hotel', 'WaktuKedatangan', 'WaktuKepulangan',
-					   'KeteranganTransportBandara-Hotel', 'Hotel-AcaraDiurusPanitia',
+					   'KeteranganTransportBandara-Hotel', 
 					   'TransportasiHotel-Acara', 'KeteranganTransportHotel-acara',
 					   'Hotel', 'TipeKamar', 'SingleOrDoubleBed',
-					   'MemesanKonsumsi', 'MemesanSnack',
+					   'MemesanKonsumsi', 
 					   'TotalHarga', 'WaktuMendaftar'
 					UNION ALL
 					SELECT 
 						code, nama, role, jabatan, gereja,
-						ktp, phone, age, with_wife, wife_name,
-					    provinsi, kota, alamat, b_h_diurus,
-					    b_h_jenis, b_h_datang, b_h_pulang,
-					    b_h_keterangan, h_a_diurus,
+						concat("'",ktp), concat("'",phone), age, 
+						case with_wife
+                         when 0 then 'sendiri'
+                         when 1 then 'dengan istri'
+                         end as with_wife
+						, wife_name,
+					    provinsi, kota, alamat, 
+						b_h_jenis, b_h_datang, b_h_pulang,
+					    b_h_keterangan, 
 					    h_a_jenis, h_a_keterangan,
-					    hotel, room, kasur,
-					    konsumsi1, konsumsi2,
+					    hotel, room, 
+					    case kasur
+                         when 0 then 'none'
+                         when 1 then 'single'
+                         when 2 then 'double'
+                         when 3 then 'extrabed'
+                        end as kasur
+					    ,
+					    case konsumsi1
+                         when 0 then 'memesan konsumsi'
+                         when 1 then 'tidak memesan'
+                        end as konsumsi1
+					    , 
 					    total_price, created_at
 					FROM participant
 					JOIN credential
 					ON credential.id = participant.cred_id	INTO OUTFILE 'data_peserta_kppm.csv' 
+				CHARACTER SET utf8
 				FIELDS ENCLOSED BY '"' 
-				TERMINATED BY ';' 
+				TERMINATED BY ',' 
 				ESCAPED BY '"' 
 				LINES TERMINATED BY '\r\n';`
 

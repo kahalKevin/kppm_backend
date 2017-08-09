@@ -386,7 +386,7 @@ func ExportCsv(w http.ResponseWriter, r *http.Request) {
         json.NewEncoder(w).Encode(err)
         return
     }
-    data, err := ioutil.ReadFile(string("/var/lib/mysql/kppm_dev/data_peserta_kppm.csv"))
+    data, err := ioutil.ReadFile(string("/var/lib/mysql/kppm_staging/data_peserta_kppm.csv"))
     if err == nil {
         w.Header().Set("Content-Disposition", "attachment; filename=data_peserta_kppm.csv")
         w.Header().Set("Content-Type", "text/csv")
